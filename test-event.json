@@ -1,0 +1,19 @@
+{
+  "source": "test-cli",
+  "event_type": "success",
+  "severity": "low",
+  "title": "NotiHub Test Event",
+  "summary": "This is a test notification to verify NotiHub is working correctly",
+  "context": {
+    "version": "0.1.0",
+    "timestamp": "2025-10-03T00:00:00Z",
+    "environment": "development"
+  },
+  "actions": [
+    {
+      "type": "link",
+      "text": "View Documentation",
+      "url": "https://github.com/yourusername/notihub"
+    }
+  ]
+}

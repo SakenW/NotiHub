@@ -1,0 +1,187 @@
+# NotiHub Configuration Template
+# This file will be copied to ~/.notihub/config.yaml during initialization
+
+version: "1"
+
+# Web Server Configuration
+server:
+  enabled: true
+  port: 3000
+  host: 0.0.0.0
+  mode: local  # 'local' | 'cloud'
+  auth:
+    token: ""  # Auto-generated during init
+    secret: ""  # For JWT signing (cloud mode)
+  cors:
+    origins:
+      - "http://localhost:5173"  # Frontend dev server
+
+# Database Configuration
+database:
+  type: sqlite  # 'sqlite' | 'postgres' | 'mysql'
+  path: ~/.notihub/data.db
+  # For cloud mode with PostgreSQL:
+  # url: postgresql://user:password@host:5432/notihub
+
+# Input Sources Configuration
+inputs:
+  # CLI/HTTP Input (always enabled)
+  cli:
+    enabled: true
+
+  http:
+    enabled: true
+    webhook_path: /webhooks/notify
+
+  # Claude Code Integration
+  claude-code:
+    enabled: false
+    webhook_path: /webhooks/claude-code
+    task_filter: []  # Empty = all tasks, or specify patterns
+    include_tool_calls: true
+
+  # GitHub Webhook
+  github:
+    enabled: false
+    webhook_path: /webhooks/github
+    webhook_secret: ""  # Set your GitHub webhook secret
+    events:
+      - push
+      - pull_request
+      - workflow_run
+
+  # n8n Integration
+  n8n:
+    enabled: false
+    webhook_path: /webhooks/n8n
+
+  # Codex Integration
+  codex:
+    enabled: false
+    api_endpoint: ""
+    api_key: ""
+
+# Output Channels Configuration
+channels:
+  # Feishu (Lark)
+  feishu:
+    enabled: false
+    type: webhook  # 'webhook' | 'mcp' | 'api'
+    webhook: ""  # https://open.feishu.cn/open-apis/bot/v2/hook/xxx
+    secret: ""   # Optional: for signature verification
+    sign: false  # Enable signature signing
+    # For MCP mode:
+    # type: mcp
+    # mcp_server_url: stdio://path/to/feishu-mcp-server
+
+  # DingTalk (钉钉)
+  dingtalk:
+    enabled: false
+    type: webhook
+    webhook: ""  # https://oapi.dingtalk.com/robot/send?access_token=xxx
+    secret: ""   # Required for secure mode
+
+  # Slack
+  slack:
+    enabled: false
+    type: webhook
+    webhook: ""  # https://hooks.slack.com/services/xxx
+
+  # Telegram
+  telegram:
+    enabled: false
+    type: api
+    bot_token: ""
+    chat_id: ""
+
+  # WeCom (企业微信)
+  wecom:
+    enabled: false
+    type: webhook
+    webhook: ""  # https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx
+
+  # Email (SMTP)
+  email:
+    enabled: false
+    type: email
+    smtp_host: smtp.gmail.com
+    smtp_port: 587
+    smtp_user: ""
+    smtp_password: ""
+    from: ""
+    to: []
+
+  # Generic Webhook
+  webhook:
+    enabled: false
+    type: webhook
+    url: ""
+    headers:
+      Content-Type: application/json
+    method: POST
+
+# Policy Configuration
+policies:
+  # Deduplication Policy
+  deduplication:
+    enabled: true
+    ttl: 60  # Time-to-live in seconds
+
+  # Rate Limiting Policy
+  rate_limit:
+    enabled: true
+    max_per_minute: 10
+    burst: 20  # Allow burst above max
+
+  # Retry Policy
+  retry:
+    enabled: true
+    max_attempts: 3
+    backoff: [1, 4, 10]  # Exponential backoff in seconds
+
+  # Fallback Policy
+  fallback:
+    enabled: true
+    # If interactive card fails, fallback to plain text
+
+# Routing Rules (Advanced)
+routing:
+  enabled: false
+  rules:
+    # Example: Send critical errors to multiple channels
+    - name: "Critical Errors"
+      condition:
+        severity: critical
+        event_type: error
+      channels:
+        - feishu
+        - dingtalk
+        - email
+
+    # Example: Send CI/CD events only to Slack
+    - name: "CI/CD Events"
+      condition:
+        source: github
+      channels:
+        - slack
+
+# Storage Configuration
+storage:
+  # Event history retention
+  retention_days: 30  # Delete events older than 30 days
+  auto_cleanup: true
+  cleanup_interval: 86400  # Run cleanup daily (seconds)
+
+# Logging Configuration
+logging:
+  level: info  # 'debug' | 'info' | 'warn' | 'error'
+  file: ~/.notihub/logs/app.log
+  max_size: 10485760  # 10MB
+  max_files: 5
+
+# Feature Flags
+features:
+  web_dashboard: true
+  sse: true  # Server-Sent Events
+  storage: true
+  metrics: false  # Prometheus metrics (planned)
